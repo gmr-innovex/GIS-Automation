@@ -12,11 +12,20 @@ def create_dxf(utm_coordinates: List[Dict], output_path: str) -> None:
     # Extract coordinate values
     points = [(coord["easting"], coord["northing"], coord["elevation"]) for coord in utm_coordinates]
     
-    # Add points
+    # Generate alphabet labels (A, B, C, ..., AA, AB, ...)
+    def get_alphabet_label(index):
+        result = ""
+        while index >= 0:
+            result = chr(65 + (index % 26)) + result
+            index = index // 26 - 1
+        return result
+    
+    # Add points with alphabet labels
     for i, point in enumerate(points):
         msp.add_point(point)
-        # Add text label with point number
-        text = msp.add_text(f"Point {i+1}", dxfattribs={'height': 2.5})
+        # Add text label with alphabet
+        label = get_alphabet_label(i)
+        text = msp.add_text(f"Point {label}", dxfattribs={'height': 2.5})
         text.dxf.insert = (point[0] + 5, point[1] + 5)  # Position text relative to point
     
     # Add polyline connecting the points
@@ -35,9 +44,10 @@ def create_dxf(utm_coordinates: List[Dict], output_path: str) -> None:
     header_row = msp.add_text("Point   Easting     Northing    Elevation   Zone", dxfattribs={'height': 3})
     header_row.dxf.insert = (table_x, table_y - 10)
     
-    # Add table rows
+    # Add table rows with alphabet labels
     for i, coord in enumerate(utm_coordinates):
-        text = f"{i+1}      {coord['easting']:.2f}   {coord['northing']:.2f}   {coord['elevation']:.2f}   {coord['zone']}"
+        label = get_alphabet_label(i)
+        text = f"{label}      {coord['easting']:.2f}   {coord['northing']:.2f}   {coord['elevation']:.2f}   {coord['zone']}"
         row = msp.add_text(text, dxfattribs={'height': 3})
         row.dxf.insert = (table_x, table_y - 20 - i*10)
     

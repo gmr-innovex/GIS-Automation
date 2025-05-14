@@ -14,17 +14,36 @@ const CoordinateInput = ({ onCoordinatesSubmit, loading }) => {
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
+      // Filter out empty coordinates and validate all fields are present
+      const validCoordinates = values.coordinates.filter(coord => {
+        return coord && 
+               coord.lat_deg !== undefined && 
+               coord.lat_min !== undefined && 
+               coord.lat_sec !== undefined && 
+               coord.lat_dir && 
+               coord.lon_deg !== undefined && 
+               coord.lon_min !== undefined && 
+               coord.lon_sec !== undefined && 
+               coord.lon_dir && 
+               coord.amsl !== undefined;
+      });
+      
+      if (validCoordinates.length === 0) {
+        console.error('No valid coordinates found');
+        return;
+      }
+      
       // Make sure to convert string values to numbers before submitting
-      const formattedCoordinates = values.coordinates.map(coord => ({
-        lat_deg: Number(coord.lat_deg),
-        lat_min: Number(coord.lat_min),
-        lat_sec: Number(coord.lat_sec),
+      const formattedCoordinates = validCoordinates.map(coord => ({
+        lat_deg: Number(coord.lat_deg) || 0,
+        lat_min: Number(coord.lat_min) || 0,
+        lat_sec: Number(coord.lat_sec) || 0,
         lat_dir: coord.lat_dir,
-        lon_deg: Number(coord.lon_deg),
-        lon_min: Number(coord.lon_min),
-        lon_sec: Number(coord.lon_sec),
+        lon_deg: Number(coord.lon_deg) || 0,
+        lon_min: Number(coord.lon_min) || 0,
+        lon_sec: Number(coord.lon_sec) || 0,
         lon_dir: coord.lon_dir,
-        amsl: Number(coord.amsl)
+        amsl: Number(coord.amsl) || 0
       }));
       
       console.log('Formatted coordinates:', formattedCoordinates);

@@ -70,8 +70,17 @@ def process_coordinates(coordinates: List[Dict]) -> List[Dict]:
             # Validate input values
             required_fields = ['lat_deg', 'lat_min', 'lat_sec', 'lat_dir',
                              'lon_deg', 'lon_min', 'lon_sec', 'lon_dir', 'amsl']
-            if not all(field in coord for field in required_fields):
-                raise CoordinateConversionError(f"Missing required fields in coordinate {i}")
+            
+            # Check for missing fields and log which ones are missing
+            missing_fields = []
+            for field in required_fields:
+                if field not in coord or coord[field] is None:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                logger.error(f"Missing fields in coordinate {i}: {missing_fields}")
+                logger.error(f"Coordinate data: {coord}")
+                raise CoordinateConversionError(f"Missing required fields in coordinate {i}: {missing_fields}")
             
             # Convert to decimal degrees
             lat_decimal = dms_to_decimal(coord['lat_deg'], coord['lat_min'], 

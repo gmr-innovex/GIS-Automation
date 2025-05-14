@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import List
 from utils.coordinate_converter import process_coordinates
@@ -46,9 +46,36 @@ async def convert_coordinates(request: CoordinateRequest):
         
         if not coordinates:
             raise HTTPException(status_code=400, detail="No coordinates provided")
+        
+        # Print input coordinates
+        print("\nInput Coordinates:")
+        for i, coord in enumerate(coordinates, 1):
+            print(f"\nCoordinate {i}:")
+            print(f"  Latitude: {coord.lat_deg}° {coord.lat_min}' {coord.lat_sec}\" {coord.lat_dir}")
+            print(f"  Longitude: {coord.lon_deg}° {coord.lon_min}' {coord.lon_sec}\" {coord.lon_dir}")
+            print(f"  AMSL: {coord.amsl}m")
             
+        # Convert to dict format for processing
+        coord_dicts = [coord.dict() for coord in coordinates]
+        
         # Process coordinates
-        utm_coordinates = process_coordinates(coordinates)
+        utm_coordinates = process_coordinates(coord_dicts)
+        
+        # Print converted values in backend console
+        print("\nConverted UTM Coordinates:")
+        for i, coord in enumerate(utm_coordinates, 1):
+            # Generate alphabet label
+            label_index = i - 1
+            label = ""
+            while label_index >= 0:
+                label = chr(65 + (label_index % 26)) + label
+                label_index = label_index // 26 - 1
+            
+            print(f"\nPoint {label}:")
+            print(f"  Easting: {coord['easting']:.2f}m")
+            print(f"  Northing: {coord['northing']:.2f}m")
+            print(f"  Elevation: {coord['elevation']:.2f}m")
+            print(f"  Zone: {coord['zone']}")
         
         # Create a temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -57,21 +84,16 @@ async def convert_coordinates(request: CoordinateRequest):
             from utils.dxf_generator import create_dxf
             create_dxf(utm_coordinates, output_path)
             
-            # Print converted values in backend console
-            print("\nConverted Coordinates:")
-            for i, coord in enumerate(utm_coordinates, 1):
-                print(f"\nCoordinate {i}:")
-                print(f"  Easting: {coord['easting']:.2f}m")
-                print(f"  Northing: {coord['northing']:.2f}m")
-                print(f"  Elevation: {coord['elevation']:.2f}m")
-                print(f"  Zone: {coord['zone']}")
+            # Read the file content into memory
+            with open(output_path, 'rb') as f:
+                file_content = f.read()
             
-            # Return both the file and the converted values
-            return FileResponse(
-                output_path,
+            # Return the file as a response
+            return Response(
+                content=file_content,
                 media_type="application/dxf",
-                filename="coordinates.dxf",
                 headers={
+                    "Content-Disposition": "attachment; filename=coordinates.dxf",
                     "X-Converted-Values": json.dumps(utm_coordinates),
                     "Access-Control-Expose-Headers": "X-Converted-Values"
                 }
