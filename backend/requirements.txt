@@ -4,7 +4,7 @@ pyproj
 ezdxf
 fastapi
 uvicorn
-pydantic==1.10.8
+pydantic>=2
 python-multipart
 pymongo
 python-jose
