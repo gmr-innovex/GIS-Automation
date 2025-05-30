@@ -10,3 +10,4 @@ pymongo
 python-jose
 python-dotenv
 motor
+typing-extensions>=4.5.0
