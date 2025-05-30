@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import List, Optional, Any
-from pydantic import BaseModel, Field, validator, GetJsonSchemaHandler
+from typing import List, Optional, Any, Annotated
+from pydantic import BaseModel, Field, field_validator, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from bson import ObjectId
 
@@ -16,7 +16,7 @@ class PyObjectId(ObjectId):
         return ObjectId(v)
 
     @classmethod
-    def __get_pydantic_json_schema__(cls, _schema_generator: GetJsonSchemaHandler) -> JsonSchemaValue:
+    def __get_pydantic_json_schema__(cls, core_schema: GetJsonSchemaHandler) -> JsonSchemaValue:
         return {"type": "string"}
 
 class Coordinate(BaseModel):
@@ -30,25 +30,29 @@ class Coordinate(BaseModel):
     lon_dir: str
     amsl: float
 
-    @validator('lat_dir')
+    @field_validator('lat_dir')
+    @classmethod
     def validate_lat_dir(cls, v):
         if v not in ['N', 'S']:
             raise ValueError('Latitude direction must be N or S')
         return v
 
-    @validator('lon_dir')
+    @field_validator('lon_dir')
+    @classmethod
     def validate_lon_dir(cls, v):
         if v not in ['E', 'W']:
             raise ValueError('Longitude direction must be E or W')
         return v
 
-    @validator('lat_deg')
+    @field_validator('lat_deg')
+    @classmethod
     def validate_lat_deg(cls, v):
         if not 0 <= v <= 90:
             raise ValueError('Latitude degrees must be between 0 and 90')
         return v
 
-    @validator('lon_deg')
+    @field_validator('lon_deg')
+    @classmethod
     def validate_lon_deg(cls, v):
         if not 0 <= v <= 180:
             raise ValueError('Longitude degrees must be between 0 and 180')
@@ -81,5 +85,6 @@ class Certificate(CertificateBase):
     model_config = {
         "json_encoders": {ObjectId: str},
         "populate_by_name": True,
-        "arbitrary_types_allowed": True
+        "arbitrary_types_allowed": True,
+        "from_attributes": True
     } 

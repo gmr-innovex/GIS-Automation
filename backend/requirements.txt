@@ -4,9 +4,10 @@ pyproj
 ezdxf
 fastapi
 uvicorn
-pydantic==1.10.8
+pydantic>=2.0.0
 python-multipart
 pymongo
 python-jose
 python-dotenv
 motor
+typing-extensions>=4.5.0

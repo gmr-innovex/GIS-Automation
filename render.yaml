@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: backend
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    workingDir: backend
+
+  - type: web
+    name: frontend
+    env: static
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "build"
+    workingDir: frontend
