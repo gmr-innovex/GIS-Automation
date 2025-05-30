@@ -10,3 +10,4 @@ pymongo
 python-jose
 python-dotenv
 motor
+gunicorn
